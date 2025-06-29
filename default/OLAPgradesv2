@@ -1,0 +1,110 @@
+{
+  "versionedFlowSnapshot": {
+    "flowContents": {
+      "processGroups": [],
+      "processors": [
+        {
+          "component": {
+            "name": "QueryDatabaseTableRecord",
+            "type": "org.apache.nifi.processors.standard.QueryDatabaseTableRecord",
+            "config": {
+              "properties": {
+                "Database Connection Pooling Service": "DBCPConnectionPool-OLTP",
+                "Table Name": "grades",
+                "Record Reader": "AvroReader",
+                "Record Writer": "AvroRecordSetWriter",
+                "Max Rows Per Flow File": "1000"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 0}
+        },
+        {
+          "component": {
+            "name": "UpdateRecord",
+            "type": "org.apache.nifi.processors.standard.UpdateRecord",
+            "config": {
+              "properties": {
+                "Record Reader": "AvroReader",
+                "Record Writer": "AvroRecordSetWriter",
+                "Replacement Value Strategy": "Record Path Value",
+                "/numeric_grade": "${field.value:toUpper():replace('A-', '87'):replace('A', '90'):replace('B+', '83'):replace('B-', '77'):replace('B', '80'):replace('C+', '73'):replace('C-', '67'):replace('C', '70'):replace('D+', '63'):replace('D-', '57'):replace('D', '60'):replace('F', '0'):replace('FA', '0'):replace('P', '40'):replace('WP', '40'):replace('WF', '0'):replaceRegex('^(W|I|NR|FP|NP|IN)$', ''):replaceRegex('^([0-9]+)\\.$', '$1')}"
+              }
+            }
+          },
+          "position": {"x": 300, "y": 0}
+        },
+        {
+          "component": {
+            "name": "PutDatabaseRecord",
+            "type": "org.apache.nifi.processors.standard.PutDatabaseRecord",
+            "config": {
+              "properties": {
+                "Database Connection Pooling Service": "DBCPConnectionPool-OLAP",
+                "Table Name": "grades",
+                "Record Reader": "AvroReader",
+                "Record Writer": "AvroRecordSetWriter"
+              }
+            }
+          },
+          "position": {"x": 600, "y": 0}
+        }
+      ],
+      "connections": [
+        {
+          "source": {"id": "1", "type": "PROCESSOR"},
+          "destination": {"id": "2", "type": "PROCESSOR"}
+        },
+        {
+          "source": {"id": "2", "type": "PROCESSOR"},
+          "destination": {"id": "3", "type": "PROCESSOR"}
+        }
+      ],
+      "controllerServices": [
+        {
+          "component": {
+            "name": "DBCPConnectionPool-OLTP",
+            "type": "org.apache.nifi.dbcp.DBCPConnectionPool",
+            "properties": {
+              "Database Connection URL": "jdbc:postgresql://localhost:5432/grades",
+              "Database Driver Class Name": "org.postgresql.Driver",
+              "Database User": "your_oltp_user",
+              "Password": "your_oltp_password"
+            }
+          }
+        },
+        {
+          "component": {
+            "name": "DBCPConnectionPool-OLAP",
+            "type": "org.apache.nifi.dbcp.DBCPConnectionPool",
+            "properties": {
+              "Database Connection URL": "jdbc:postgresql://localhost:5432/olapdb",
+              "Database Driver Class Name": "org.postgresql.Driver",
+              "Database User": "your_olap_user",
+              "Password": "your_olap_password"
+            }
+          }
+        },
+        {
+          "component": {
+            "name": "AvroReader",
+            "type": "org.apache.nifi.avro.AvroReader"
+          }
+        },
+        {
+          "component": {
+            "name": "AvroRecordSetWriter",
+            "type": "org.apache.nifi.avro.AvroRecordSetWriter",
+            "properties": {
+              "Schema Write Strategy": "HW_RECORD_SCHEMA"
+            }
+          }
+        }
+      ]
+    },
+    "flow": {
+      "name": "OLTP_to_OLAP_Grades_ETL_2.4.0",
+      "description": "Extract, Cleanse, and Load grades from OLTP to OLAP using NiFi 2.x"
+    }
+  }
+}
