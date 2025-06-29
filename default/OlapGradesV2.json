@@ -1,7 +1,7 @@
 {
 "versionedFlowSnapshot": {
 "flow": {
-"name": "OLTP_to_OLAP_Grades_ETL_2.4.0",
+"name": "OlapGradesV2",
 "description": "Extract, Cleanse, and Load grades from OLTP to OLAP using NiFi 2.x"
 },
 "flowContents": {
